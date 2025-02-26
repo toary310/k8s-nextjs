@@ -1,0 +1,43 @@
+application:
+  name: nextjs-app
+  environment: development
+
+image:
+  repository: nextjs-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+deployment:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+service:
+  type: ClusterIP
+  port: 3000  # Next.jsのデフォルトポート
+  targetPort: 3000  # コンテナポート
+
+containerPort: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: nextjs-app.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources: {}
+
+
+env:
+  normal:
+    NODE_ENV: development

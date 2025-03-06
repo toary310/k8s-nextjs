@@ -1,27 +1,38 @@
+# Kubernetes APIのバージョンを指定します。networking.k8s.io/v1はIngressリソースに必要です
 apiVersion: networking.k8s.io/v1
+# リソースの種類を指定します。Ingressはクラスター外部からのHTTPトラフィックをサービスにルーティングします
 kind: Ingress
 metadata:
+  # Ingressリソースの名前を設定します。Values.yamlから取得されます
   name: {{ .Values.application.name }}
+  # Ingressに適用するラベルを設定します
   labels:
     {{- include "helm-chart.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
+  # アノテーションはIngressコントローラーの動作をカスタマイズするために使用されます
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  # 使用するIngressControllerのクラス名を指定します（nginx、traefik など）
   ingressClassName: {{ .Values.ingress.className }}
+  # ルーティングルールを定義します
   rules:
   {{- range .Values.ingress.hosts }}
+  # 各ホスト名ごとのルールを設定します
   - host: {{ .host }}
     http:
       paths:
       {{- range .paths }}
-      - pathType: {{ .pathType }}
-        path: {{ .path }}
+      # 各パスごとのルーティング設定をします
+      - pathType: {{ .pathType }}  # パスタイプ: Exact（完全一致）、Prefix（前方一致）など
+        path: {{ .path }}  # ルーティング対象のURLパス（例: /api, /）
         backend:
           service:
+            # ルーティング先のサービス名を指定します
             name: {{ $.Values.application.name }}
             port:
+              # ルーティング先のサービスポート番号を指定します
               number: {{ $.Values.service.port }}
       {{- end }}
   {{- end }}

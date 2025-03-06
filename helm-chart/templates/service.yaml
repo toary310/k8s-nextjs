@@ -1,14 +1,21 @@
+# Kubernetes APIのバージョンを指定します。v1はServiceリソースに使用されます
 apiVersion: v1
+# リソースの種類を指定します。Serviceはポッドへのネットワークアクセスを提供します
 kind: Service
 metadata:
+  # サービスの名前を設定します。この値はValues.yamlから取得されます
   name: {{ .Values.application.name }}
+  # サービスに適用するラベルを設定します
   labels:
     {{- include "helm-chart.labels" . | nindent 4 }}
 spec:
+  # サービスのタイプを指定します（ClusterIP、NodePort、LoadBalancer、ExternalNameなど）
   type: {{ .Values.service.type }}
+  # サービスが公開するポートの設定をします
   ports:
-  - port: {{ .Values.service.port }}
-    targetPort: {{ .Values.service.targetPort }}
-    protocol: TCP
+  - port: {{ .Values.service.port }}  # クラスター内からアクセスするポート番号
+    targetPort: {{ .Values.service.targetPort }}  # ポッド内のターゲットポート番号
+    protocol: TCP  # 通信プロトコル（TCP、UDP）
+  # このサービスがトラフィックを転送するポッドを選択するセレクター
   selector:
     {{- include "helm-chart.labels" . | nindent 4 }}

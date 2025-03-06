@@ -1,43 +1,97 @@
+# ===== アプリケーション基本設定 =====
+# このセクションではアプリケーションの基本情報を定義します
 application:
+  # アプリケーションの名前（Kubernetesリソースの命名に使用されます）
   name: nextjs-app
+  # 実行環境（development, staging, productionなど）
   environment: development
 
+# ===== コンテナイメージ設定 =====
+# このセクションではDockerイメージに関する設定を定義します
 image:
+  # イメージのリポジトリ名（DockerHubやプライベートレジストリのパス）
   repository: nextjs-app
+  # イメージのタグ（バージョン）。latestは最新版を意味します
   tag: latest
+  # イメージのプルポリシー
+  # - IfNotPresent: ローカルに存在しない場合のみプル（推奨）
+  # - Always: 常に最新をプル
+  # - Never: プルしない（ローカルのみ使用）
   pullPolicy: IfNotPresent
 
+# ===== デプロイメント設定 =====
+# このセクションではKubernetesのDeploymentリソースの設定を定義します
 deployment:
+  # レプリカ数（同時に実行するPodの数）
+  # 高可用性を実現するには2以上を設定します
   replicas: 1
+  # コンテナのリソース制限
   resources:
+    # リソース要求（最低限必要なリソース）
     requests:
+      # CPU要求（100m = 0.1コア）
       cpu: "100m"
+      # メモリ要求（128Mi = 128メビバイト）
       memory: "128Mi"
+    # リソース上限（最大使用可能なリソース）
     limits:
+      # CPU上限（500m = 0.5コア）
       cpu: "500m"
+      # メモリ上限（512Mi = 512メビバイト）
       memory: "512Mi"
 
+# ===== サービス設定 =====
+# このセクションではKubernetesのServiceリソースの設定を定義します
+# Serviceはクラスター内でPodへのアクセスを提供します
 service:
+  # サービスタイプ
+  # - ClusterIP: クラスター内部からのみアクセス可能（デフォルト）
+  # - NodePort: ノードのIPとポートでアクセス可能
+  # - LoadBalancer: ロードバランサーを使用（クラウド環境で有効）
   type: ClusterIP
+  # サービスが公開するポート
   port: 3000  # Next.jsのデフォルトポート
+  # ターゲットポート（コンテナ側のポート）
   targetPort: 3000  # コンテナポート
 
+# コンテナが公開するポート（Dockerfileの EXPOSE に対応）
 containerPort: 3000
 
+# ===== イングレス設定 =====
+# このセクションではKubernetesのIngressリソースの設定を定義します
+# Ingressはクラスター外部からのHTTPトラフィックをサービスにルーティングします
 ingress:
+  # イングレスを有効にするかどうか
   enabled: true
+  # イングレスコントローラーのクラス名（nginx, traefik など）
   className: nginx
+  # イングレスのアノテーション（追加設定）
   annotations:
+    # URLパスの書き換えルール
     nginx.ingress.kubernetes.io/rewrite-target: /
+  # ホスト設定（ドメイン名とパス）
   hosts:
+    # ホスト名（ドメイン名）
     - host: nextjs-app.local
+      # パス設定
       paths:
+        # パス（URLのパス部分）
         - path: /
+          # パスタイプ
+          # - Prefix: 指定したパスで始まるすべてのURLにマッチ
+          # - Exact: 完全一致のみマッチ
           pathType: Prefix
 
+# 追加のリソース設定（空の場合は{}で表現）
+# 上記のdeployment.resourcesと統合することも可能
 resources: {}
 
-
+# ===== 環境変数設定 =====
+# このセクションではコンテナに渡す環境変数を定義します
 env:
+  # 通常の環境変数（平文で設定）
   normal:
+    # Node.jsの実行環境設定
+    # - development: 開発環境
+    # - production: 本番環境
     NODE_ENV: development

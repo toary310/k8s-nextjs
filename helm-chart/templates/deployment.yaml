@@ -1,27 +1,41 @@
+# Kubernetes APIのバージョンを指定します。apps/v1はDeploymentリソースに必要です
 apiVersion: apps/v1
+# リソースの種類を指定します。Deploymentはポッドのレプリケーションと管理を行います
 kind: Deployment
 metadata:
+  # アプリケーションの名前を設定します。この値はValues.yamlから取得されます
   name: {{ .Values.application.name }}
   labels:
+    # ヘルパーテンプレートを使用してラベルを設定します
     {{- include "helm-chart.labels" . | nindent 4 }}
 spec:
+  # レプリカ（ポッドの数）を指定します。Values.yamlから取得されます
   replicas: {{ .Values.deployment.replicas }}
   selector:
+    # どのポッドがこのDeploymentに属するかを選択するためのラベルを設定します
     matchLabels:
       {{- include "helm-chart.labels" . | nindent 6 }}
   template:
     metadata:
+      # ポッドに適用するラベルを設定します
       labels:
         {{- include "helm-chart.labels" . | nindent 8 }}
     spec:
       containers:
+      # コンテナの設定を開始します
       - name: {{ .Values.application.name }}
+        # 使用するDockerイメージを指定します
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        # イメージのプルポリシーを設定します（Always/IfNotPresent/Never）
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        # コンテナが公開するポートを指定します
         ports:
         - containerPort: {{ .Values.service.targetPort }}
+        # リソース制限と要求を設定します（CPU、メモリなど）
         resources:
           {{- toYaml .Values.deployment.resources | nindent 12 }}
+        # 環境変数を設定します
         env:
+          # NODE_ENV環境変数を設定します（本番環境、開発環境など）
           - name: NODE_ENV
             value: {{ .Values.env.normal.NODE_ENV }}
